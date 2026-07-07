@@ -25,19 +25,20 @@ export function AppShell({ children }: AppShellProps) {
         )}
       >
         {/* Top bar */}
-        <header className="flex items-center justify-between px-4 h-10 bg-surface-1 border-b border-faint shrink-0">
+        <header className="flex items-center justify-between px-4 h-10 bg-surface-1/95 border-b border-faint shrink-0 backdrop-blur-sm relative">
+          {/* Subtle gold underline glow */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-gold/20 to-transparent pointer-events-none" />
           <div className="flex items-center gap-3">
-            <span className="text-accent-gold font-mono text-sm font-bold tracking-widest">
+            <span className="text-accent-gold font-mono text-sm font-bold tracking-widest glow-gold-sm animate-flicker">
               USRE
             </span>
-            <span className="text-faint">|</span>
-            <span className="text-xs text-muted uppercase tracking-wider">
+            <span className="text-faint text-xs">│</span>
+            <span className="text-[10px] text-muted uppercase tracking-[0.2em]">
               Ultimate Sandbox RPG Engine
             </span>
+            {isPlaying && <span className="status-dot ml-1" />}
           </div>
-          {isPlaying && (
-            <TopBarControls />
-          )}
+          {isPlaying && <TopBarControls />}
         </header>
 
         {/* Page content */}
@@ -58,29 +59,30 @@ function TopBarControls() {
   const buildSaveState = useGameStore((s) => s.buildSaveState);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <button
         onClick={() => {
           const state = buildSaveState();
           if (state) openExportModal(JSON.stringify(state, null, 2));
         }}
-        className="text-xs text-muted hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-surface-2"
+        className="text-[11px] text-muted hover:text-gray-200 transition-all duration-150 px-2 py-1 rounded hover:bg-surface-3 hover:shadow-[0_0_8px_rgba(201,168,76,0.1)]"
       >
         Export
       </button>
       <button
         onClick={openImportModal}
-        className="text-xs text-muted hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-surface-2"
+        className="text-[11px] text-muted hover:text-gray-200 transition-all duration-150 px-2 py-1 rounded hover:bg-surface-3"
       >
         Import
       </button>
+      <div className="w-px h-4 bg-faint mx-1" />
       <button
         onClick={toggleSidePanel}
         className={clsx(
-          'text-xs transition-colors px-2.5 py-1 rounded border',
+          'text-[11px] transition-all duration-200 px-2.5 py-1 rounded border shimmer',
           sidePanelOpen
-            ? 'text-accent-gold border-accent-gold/40 bg-accent-gold/10'
-            : 'text-muted border-faint hover:text-gray-300 hover:bg-surface-2'
+            ? 'text-accent-gold border-accent-gold/40 bg-accent-gold/10 shadow-[0_0_12px_rgba(201,168,76,0.15)]'
+            : 'text-muted border-faint hover:text-gray-200 hover:border-gray-500/50 hover:bg-surface-3'
         )}
       >
         {sidePanelOpen ? '◀ Panel' : '▶ Panel'}

@@ -303,32 +303,40 @@ export function PlayInterface() {
   return (
     <div className="flex flex-col h-full">
       {/* Status bar */}
-      {char && (
-        <div className="flex items-center gap-4 px-4 py-2 bg-surface-1 border-b border-faint text-xs shrink-0 overflow-x-auto">
-          <span className="font-medium text-accent-gold whitespace-nowrap">{char.name}</span>
-          <span className="text-muted">Lv {char.level}</span>
-          <div className="w-24">
-            <TrackBar track={char.tracks.hp} showLabel={false} size="sm" />
+      {char && (() => {
+        const hpPct = char.tracks.hp.current / char.tracks.hp.max;
+        const hpCritical = hpPct <= 0.25;
+        return (
+          <div className="relative flex items-center gap-4 px-4 py-2 bg-surface-1/95 border-b border-faint text-xs shrink-0 overflow-x-auto backdrop-blur-sm">
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-gold/15 to-transparent pointer-events-none" />
+            <span className={clsx('font-medium whitespace-nowrap glow-gold-sm', hpCritical ? 'text-accent-red glow-red animate-hp-crit' : 'text-accent-gold')}>
+              {char.name}
+            </span>
+            <span className="text-muted font-mono">Lv {char.level}</span>
+            <div className="w-24">
+              <TrackBar track={char.tracks.hp} showLabel={false} size="sm" />
+            </div>
+            <span className={clsx('tabular-nums font-mono', hpCritical ? 'text-accent-red animate-hp-crit' : 'text-gray-400')}>
+              {char.tracks.hp.current}/{char.tracks.hp.max} HP
+            </span>
+            {char.tracks.stamina && (
+              <>
+                <div className="w-16">
+                  <TrackBar track={char.tracks.stamina} showLabel={false} size="sm" />
+                </div>
+                <span className="tabular-nums text-muted font-mono">{char.tracks.stamina.current} Stam</span>
+              </>
+            )}
+            <div className="w-px h-3 bg-faint" />
+            <span className="text-accent-gold/60 font-mono whitespace-nowrap">T{store.turn}</span>
+            {store.location && (
+              <span className="text-gray-500 whitespace-nowrap truncate max-w-[140px]">
+                <span className="text-faint">@ </span>{store.location.regionName}
+              </span>
+            )}
           </div>
-          <span className="tabular-nums text-gray-400">{char.tracks.hp.current}/{char.tracks.hp.max} HP</span>
-          {char.tracks.stamina && (
-            <>
-              <div className="w-16">
-                <TrackBar track={char.tracks.stamina} showLabel={false} size="sm" />
-              </div>
-              <span className="tabular-nums text-muted">{char.tracks.stamina.current} Stam</span>
-            </>
-          )}
-          <span className="text-muted">|</span>
-          <span className="text-gray-500 whitespace-nowrap">Turn {store.turn}</span>
-          {store.location && (
-            <>
-              <span className="text-muted">@</span>
-              <span className="text-gray-400 whitespace-nowrap truncate max-w-[120px]">{store.location.regionName}</span>
-            </>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {/* Message pane */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
@@ -371,7 +379,7 @@ export function PlayInterface() {
       )}
 
       {/* Input */}
-      <div className="px-4 pb-4 pt-2 border-t border-faint shrink-0">
+      <div className="px-4 pb-4 pt-2 border-t border-faint shrink-0 bg-surface-1/50 backdrop-blur-sm">
         <div className="flex gap-2">
           <input
             ref={inputRef}
@@ -379,7 +387,13 @@ export function PlayInterface() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             disabled={processing}
-            className="flex-1 bg-surface-1 border border-faint rounded px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none focus:border-accent-gold-dim focus:ring-1 focus:ring-accent-gold/20 disabled:opacity-50"
+            className={clsx(
+              'flex-1 bg-surface-0 border border-faint rounded px-3 py-2.5 text-sm text-gray-100',
+              'placeholder:text-gray-700 font-mono',
+              'focus:outline-none focus:border-accent-gold/50 focus:ring-1 focus:ring-accent-gold/15',
+              'focus:shadow-[0_0_16px_rgba(201,168,76,0.1)]',
+              'disabled:opacity-40 transition-all duration-200'
+            )}
             placeholder="Enter action or /command…"
           />
           <Button
@@ -390,8 +404,8 @@ export function PlayInterface() {
             →
           </Button>
         </div>
-        <p className="text-[10px] text-gray-600 mt-1.5 text-center">
-          Type any action freely · /save /load /sheet /log /undo /bookmark /note /seed /help
+        <p className="text-[9px] text-gray-700 mt-1.5 text-center tracking-wider">
+          /save · /load · /sheet · /log · /undo · /bookmark · /note · /seed · /help
         </p>
       </div>
     </div>
@@ -402,12 +416,12 @@ export function PlayInterface() {
 
 function MessageBubble({ message }: { message: GameMessage }) {
   const typeStyles: Record<string, string> = {
-    narrative: 'text-gray-200 leading-relaxed',
-    system: 'text-gray-500 text-sm italic',
-    command: 'text-accent-blue text-sm font-mono',
-    error: 'text-accent-red text-sm',
-    success: 'text-accent-green text-sm font-semibold',
-    separator: 'text-faint text-xs text-center',
+    narrative: 'text-gray-300 leading-relaxed',
+    system:   'text-gray-600 text-sm italic pl-2 border-l border-faint',
+    command:  'text-accent-blue text-sm font-mono pl-2 border-l-2 border-accent-blue/30',
+    error:    'text-accent-red text-sm font-mono pl-2 border-l-2 border-accent-red/40 bg-accent-red/5 rounded pr-2 py-0.5',
+    success:  'text-accent-green text-sm font-semibold pl-2 border-l-2 border-accent-green/40 bg-accent-green/5 rounded pr-2 py-0.5',
+    separator:'text-faint text-xs text-center',
   };
 
   if (message.type === 'roll' && message.rollResult) {
