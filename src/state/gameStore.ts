@@ -512,6 +512,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       resources: state.resources,
       flags: state.flags as Record<string, unknown>,
       messages: [],
+      notes: [],
     });
   },
 

@@ -182,7 +182,7 @@ export type ConsequenceLevel =
 export function resolveAction(input: ResolutionInput): ResolutionOutput {
   const { action, character, config, rng, turn } = input;
 
-  const { stat, dc: baseDC } = classifyAction(action, config);
+  const { stat, dc: baseDC, category } = classifyAction(action, config);
   const dc = input.forcedDC ?? baseDC;
   const statKey = input.forcedStat ?? stat;
 
@@ -202,7 +202,8 @@ export function resolveAction(input: ResolutionInput): ResolutionOutput {
 
   const consequence = deriveConsequence(roll, config);
   const xpGained = xpForAction(consequence, dc);
-  const hpDelta = hpDeltaFromConsequence(consequence, config);
+  const isCombat = category === 'combat_attack' || category === 'combat_defend';
+  const hpDelta = isCombat ? hpDeltaFromConsequence(consequence, config) : 0;
   const staminaDelta = staminaDelta_(consequence);
   const narrativeHints = buildNarrativeHints(consequence, roll, action, config);
 

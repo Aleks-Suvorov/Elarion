@@ -137,7 +137,7 @@ export function PlayInterface() {
     }
 
     // Advance time
-    const newTime = advanceTime(world.time, Math.floor(Math.random() * 3) + 1);
+    const newTime = advanceTime(world.time, rng.nextInt(1, 3));
     world = { ...world, time: newTime };
 
     // Random event
@@ -173,19 +173,21 @@ export function PlayInterface() {
 
     store.incrementTurn();
 
-    // Auto-checkpoint
-    if (store.turn > 0 && store.turn % CHECKPOINT_EVERY === 0) {
+    // Auto-checkpoint (read fresh turn after increment)
+    const freshTurn = useGameStore.getState().turn;
+    if (freshTurn > 0 && freshTurn % CHECKPOINT_EVERY === 0) {
       const saveState = store.buildSaveState();
       if (saveState) {
         const compressed = autoCompress(saveState);
-        saveCheckpoint(compressed, `Auto T${store.turn}`).catch(console.error);
+        saveCheckpoint(compressed, `Auto T${freshTurn}`).catch(console.error);
         saveGame(compressed, 'autosave').catch(console.error);
       }
     }
 
-    // XP level up check
-    if (store.character && store.character.xp >= store.character.xpToNext) {
-      const { character: leveled, leveledUp, message } = awardXP(store.character, 0);
+    // XP level up check (read fresh character after grantXP)
+    const freshChar = useGameStore.getState().character;
+    if (freshChar && freshChar.xp >= freshChar.xpToNext) {
+      const { character: leveled, leveledUp, message } = awardXP(freshChar, 0);
       if (leveledUp) {
         store.finalizeCharacter(leveled);
         store.addMessage({ type: 'success', content: `🎉 ${message}` });

@@ -51,13 +51,11 @@ const ROLES = [
   'hunter', 'engineer', 'negotiator', 'commander', 'scout', 'advisor',
 ];
 
-const CONSEQUENCES = [
-  'A major crisis erupts — the factions are forced to react.',
-  'The threat can no longer be ignored; conflict becomes inevitable.',
-  'Resources run dry; desperation forces desperate measures.',
-  'The event reshapes the regional power balance.',
-  'A new danger emerges in the wake of the completed clock.',
-];
+// Consequence tag templates — format: 'tag:targetId' (parsed by applyWorldConsequence)
+// The %FACTION% and %REGION% placeholders are replaced with real IDs at clock generation time.
+const THREAT_CONSEQUENCES = ['faction_hostile:%FACTION%', 'region_danger_up:%REGION%'];
+const OPPORTUNITY_CONSEQUENCES = ['faction_friendly:%FACTION%', 'region_danger_down:%REGION%'];
+const EVENT_CONSEQUENCES = ['region_danger_up:%REGION%', 'faction_hostile:%FACTION%'];
 
 // ─── ID Generator ─────────────────────────────────────────────
 
@@ -270,6 +268,15 @@ function genClocks(rng: RNG, config: GameConfig, factions: Faction[], regions: R
     const category = categories[i % categories.length];
     const faction = factions.length > 0 ? rng.pick(factions) : null;
     const region = rng.pick(regions);
+    const factionId = faction?.id ?? uid('faction', 0);
+    const pool =
+      category === 'threat' ? THREAT_CONSEQUENCES :
+      category === 'opportunity' ? OPPORTUNITY_CONSEQUENCES :
+      EVENT_CONSEQUENCES;
+    const onComplete = rng.pick(pool)
+      .replace('%FACTION%', factionId)
+      .replace('%REGION%', region.id);
+
     clocks.push({
       id: uid('clock', i),
       name: category === 'threat'
@@ -283,7 +290,7 @@ function genClocks(rng: RNG, config: GameConfig, factions: Faction[], regions: R
       ticks: 0,
       maxTicks: rng.nextInt(4, 8),
       category,
-      onComplete: rng.pick(CONSEQUENCES),
+      onComplete,
       active: true,
       regionId: region.id,
       factionId: faction?.id,

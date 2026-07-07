@@ -271,15 +271,18 @@ export function CharCreationWizard({ config, onDone }: Props) {
           <div className="flex flex-col gap-4">
             <h2 className="text-gray-100 font-semibold">Review Character</h2>
             <div className="bg-surface-0 border border-faint rounded p-3 text-xs space-y-1.5">
+              {(() => {
+                const finalStats = applySpeciesModifiers(stats, species);
+                return (
+                  <>
               <p><span className="text-muted">Name:</span> <span className="text-gray-100 font-semibold">{name || 'Unnamed'}</span></p>
               <p><span className="text-muted">Species:</span> <span className="text-gray-300">{species.name}</span></p>
               <p><span className="text-muted">Archetype:</span> <span className="text-gray-300">{archetype.name}</span></p>
-              <p><span className="text-muted">HP:</span> <span className="text-accent-green">{computeMaxHP(stats, 1)}</span></p>
-              <p><span className="text-muted">Stamina:</span> <span className="text-accent-blue">{computeMaxStamina(stats)}</span></p>
+              <p><span className="text-muted">HP:</span> <span className="text-accent-green">{computeMaxHP(finalStats, 1)}</span></p>
+              <p><span className="text-muted">Stamina:</span> <span className="text-accent-blue">{computeMaxStamina(finalStats)}</span></p>
               <div className="pt-1 grid grid-cols-4 gap-1">
                 {STAT_LABELS.map(({ key, label }) => {
-                  const final = applySpeciesModifiers(stats, species);
-                  const val = final[key] ?? stats[key] ?? 3;
+                  const val = finalStats[key] ?? stats[key] ?? 3;
                   return (
                     <div key={key} className="text-center">
                       <p className="text-muted">{label}</p>
@@ -289,6 +292,9 @@ export function CharCreationWizard({ config, onDone }: Props) {
                 })}
               </div>
               {backstory && <p className="pt-1"><span className="text-muted">Backstory:</span> <span className="text-gray-400">{backstory.slice(0, 100)}</span></p>}
+                  </>
+                );
+              })()}
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" onClick={() => setStep('backstory')}>← Back</Button>
